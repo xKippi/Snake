@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,6 +31,9 @@ namespace Snake
         private static ConsoleColor player1Color;
         private static ConsoleColor player2Color;
         private static ConsoleColor starColor;
+        private static ConsoleColor pauseColor;
+        private static ConsoleColor pauseHighlightColor;
+        private static ConsoleColor pauseTextColor;
         private static WindowSize windowSize;
         private static int time;
         private static int tickSpeed = 80;
@@ -161,12 +164,16 @@ namespace Snake
 
             SetVariables();
 
+            Console.ForegroundColor = DefaultForegroundColor;
+            Console.BackgroundColor = DefaultBackgroundColor;
+
             if (!File.Exists(configPath))
             {
                 Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.WriteLine("Recommended font is Consolas with fontsize 16!");
                 Console.ForegroundColor = DefaultForegroundColor;
                 Console.WriteLine("Press any key to continue...");
+                Console.ForegroundColor = ConsoleColor.DarkGray;
                 Console.ReadKey(true);
             }
 
@@ -193,14 +200,17 @@ namespace Snake
             starChar = '*';
             HeadChar = 'O';
             BodyChar = '\u25E6';
-            DefaultForegroundColor = Console.ForegroundColor;
-            DefaultBackgroundColor = Console.BackgroundColor;
+            DefaultForegroundColor = ConsoleColor.Gray;     //Console.ForegroundColor?
+            DefaultBackgroundColor = ConsoleColor.Black;    //Console.BackgroundColor?
             starColor = ConsoleColor.Yellow;
             ReadColor = ConsoleColor.White;
             player1Color = ConsoleColor.DarkGreen;
             player2Color = ConsoleColor.DarkCyan;
             frameForegroundColor = ConsoleColor.DarkGray;
             frameBackgroundColor = ConsoleColor.Black;
+            pauseColor = ConsoleColor.Red;
+            pauseHighlightColor = ConsoleColor.Gray;
+            pauseTextColor = ConsoleColor.DarkGray;
             windowSize = WindowSize.Normal;
             MaxNameLength = 20;
             MaxScore = 9999;
@@ -212,7 +222,7 @@ namespace Snake
             string[] config = new string[0];
             if (!Utils.TryReadLines(configPath, ref config))
             {   
-                config = new string[] { "#Here you can change some settings from the Program.\n","player1Color=" + player1Color, "player2Color=" + player2Color, "frameForegroundcolor=" + frameForegroundColor, "frameBackgroundcolor=" + frameBackgroundColor, "defaultForegroundcolor=" + DefaultForegroundColor, "defaultBackgroundcolor=" + DefaultBackgroundColor, "starColor=" + starColor, "readColor=" + ReadColor, "frameChar=" + frameChar, "starChar="+starChar,"bodyChar="+BodyChar,"headChar="+HeadChar,"askForName=" + AskForName, "deleteCorps=" + DeleteCorps, "preferredWindowSize=" +  windowSize, "maxNameLength="+MaxNameLength,"maxScore="+MaxScore,"startLength="+StartLength,"tickSpeed="+tickSpeed};
+                config = new string[] { "#Here you can change some settings from the Program.\n","player1Color=" + player1Color, "player2Color=" + player2Color, "frameForegroundcolor=" + frameForegroundColor, "frameBackgroundcolor=" + frameBackgroundColor, "defaultForegroundcolor=" + DefaultForegroundColor, "defaultBackgroundcolor=" + DefaultBackgroundColor, "starColor=" + starColor, "readColor=" + ReadColor, "pauseColor="+pauseColor, "pauseTextColor="+pauseTextColor, "pauseHighlightColor="+pauseHighlightColor, "frameChar=" + frameChar, "starChar="+starChar,"bodyChar="+BodyChar,"headChar="+HeadChar,"askForName=" + AskForName, "deleteCorps=" + DeleteCorps, "preferredWindowSize=" +  windowSize, "maxNameLength="+MaxNameLength,"maxScore="+MaxScore,"startLength="+StartLength,"tickSpeed="+tickSpeed};
                 foreach (string item in config)
                 {
                     File.AppendAllText(configPath, item + Environment.NewLine);
@@ -245,6 +255,9 @@ namespace Snake
                         case "defaultbackgroundcolor":  DefaultBackgroundColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), confValue); break;
                         case "starcolor":               starColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), confValue); break;
                         case "readcolor":               ReadColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), confValue); break;
+                        case "pausecolor":              pauseColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), confValue); break;
+                        case "pausetextcolor":          pauseTextColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), confValue); break;
+                        case "pausehighlightcolor":     pauseHighlightColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), confValue); break;
                         case "framechar":               frameChar = confValue[0]; break;
                         case "starchar":                starChar = confValue[0];break;
                         case "bodychar":                BodyChar = confValue[0];break;
@@ -252,7 +265,7 @@ namespace Snake
                         case "askforname":              AskForName = bool.Parse(confValue); break;
                         case "deletecorps":             DeleteCorps = bool.Parse(confValue); break;
                         case "preferredwindowsize":     windowSize = (WindowSize)Enum.Parse(typeof(WindowSize), confValue); break;
-                        case "maxnamelength":           MaxNameLength = int.Parse(confValue); if (MaxNameLength < 11 + MaxScore.ToString().Length) { MaxNameLength = 20; throw new ArgumentOutOfRangeException(); } break;
+                        case "maxnamelength":           MaxNameLength = int.Parse(confValue);  break;
                         case "maxscore":                MaxScore = int.Parse(confValue); if (MaxScore < 10) { MaxScore = 9999; throw new ArgumentOutOfRangeException(); } break;
                         case "startlength":             StartLength = int.Parse(confValue); if (StartLength < 0) { StartLength = 4; throw new ArgumentOutOfRangeException(); } break;
                         case "tickspeed":               tickSpeed = int.Parse(confValue); if (tickSpeed < 0) { tickSpeed=80; throw new ArgumentOutOfRangeException(); } break;
@@ -277,15 +290,15 @@ namespace Snake
                     return;
             }
 
-            if (MaxNameLength > windowDimesions[1] / 4 + 5) 
+            if (MaxNameLength > windowDimesions[1] / 4 + 5 || MaxNameLength > windowDimesions[1] / 2 - 15)
             {
                 PrintError('"' + "maxNameLength" + '"' + " is too big... Using default value!");
                 MaxNameLength = 20;
-                if (MaxScore.ToString().Length > MaxNameLength - 11)
-                {
-                    PrintError('"' + "maxScore" + '"' + " is too big(maxScore and maxNameLength should suit each other)... Using default value!");
-                    MaxScore = 9999;
-                }
+            }
+            if (MaxNameLength < 11 + MaxScore.ToString().Length)
+            {
+                PrintError('"' + "maxScore" + '"' + " is too small... Using default value!");
+                MaxNameLength = 20;
             }
 
             if (MaxScore.ToString().Length > MaxNameLength - 11)
@@ -335,7 +348,7 @@ namespace Snake
 
                     Console.WindowHeight = originalHeight;
                     Console.WindowWidth = originalWidth;
-                    PrintError("Can not set window size for game (try smaller font size)... Trying smaller window...");
+                    PrintError("Can not set window size for game (Try smaller font size!)... Trying smaller window...");
                 }
             }
             Console.ForegroundColor = ConsoleColor.Red;
@@ -404,23 +417,47 @@ namespace Snake
         public static void Pause()  //have a break, have a KitKat :)
         {
             Console.Title = Console.Title + " [Paused]";
+
+            Console.SetCursorPosition(Console.WindowWidth/2-5, Console.WindowHeight - 3);
+            Console.ForegroundColor = pauseColor;
+            Console.Write("Game paused");
+            Console.SetCursorPosition(Console.WindowWidth / 2 - 12, Console.WindowHeight - 2);
+            Console.ForegroundColor = pauseTextColor;
+            PrintHighlight("Press ", "[Enter]", "to continue", pauseHighlightColor);
+
             do
             {
                 Thread.Sleep(1);
             }
             while (!(Console.ReadKey(true).Key == ConsoleKey.Enter));
+
+            string space = new string(' ', 25);
+            Console.SetCursorPosition(Console.WindowWidth / 2 - 5, Console.WindowHeight - 3);
+            Console.Write(space);
+            Console.SetCursorPosition(Console.WindowWidth / 2 - 12, Console.WindowHeight - 2);
+            Console.Write(space);
+
             time = Environment.TickCount;
             Console.Title = Console.Title.Remove(Console.Title.Length - 9);
-            //Press [Enter] to continue. 25 (ohne.) 26(mit.)
-            //Game paused. 11(ohne.) 12(mit.)
         }
 
-        private static void PrintError(string message)
+        public static void PrintError(string message)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine(message);
             Console.ForegroundColor = DefaultForegroundColor;
             Thread.Sleep(2500);
+        }
+
+        public static void PrintHighlight(string begin, string highlight, string end, ConsoleColor highlightColor)
+        {
+            ConsoleColor prevColor = Console.ForegroundColor;
+
+            Console.Write(begin);
+            Console.ForegroundColor = highlightColor;
+            Console.Write(highlight);
+            Console.ForegroundColor = prevColor;
+            Console.Write(end);
         }
     }
 }
