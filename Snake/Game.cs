@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -10,10 +9,10 @@ namespace Snake
 {
     public enum WindowSize { Small=40, Normal=46, Big=52}
     public enum Direction { Right, Left, Up, Down };
+    //public enum Object { Wall, Snake1, Snake2, SnakeHead, Star };
 
     class Game
     {
-        public static readonly Random randy = new Random();
         public static int MaxNameLength { get; private set; }
         public static int MaxScore { get; private set; }
         public static int StartLength { get; private set; }
@@ -26,6 +25,7 @@ namespace Snake
         public static ConsoleColor DefaultForegroundColor { get; private set; }
         public static ConsoleColor DefaultBackgroundColor { get; private set; }
         public static ConsoleColor ReadColor { get; private set; }
+        private static readonly Random randy = new Random();
         private static ConsoleColor frameForegroundColor;
         private static ConsoleColor frameBackgroundColor;
         private static ConsoleColor player1Color;
@@ -169,11 +169,7 @@ namespace Snake
 
             if (!File.Exists(configPath))
             {
-                Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.WriteLine("Recommended font is Consolas with fontsize 16!");
-                Console.ForegroundColor = DefaultForegroundColor;
-                Console.WriteLine("Press any key to continue...");
-                Console.ForegroundColor = ConsoleColor.DarkGray;
+                Utils.PrintHighlight("", "Recommended font is Consolas with fontsize 16!", "\nPress any key to continue...", ConsoleColor.Cyan);
                 Console.ReadKey(true);
             }
 
@@ -351,10 +347,7 @@ namespace Snake
                     PrintError("Can not set window size for game (Try smaller font size!)... Trying smaller window...");
                 }
             }
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("Can't set Console Size for game... Quitting!");
-            Console.ForegroundColor = DefaultForegroundColor;
-            Thread.Sleep(3000);
+            PrintError("Can't set Console Size for game... Quitting!", ConsoleColor.Red, 3000);
             return 1;
         }
 
@@ -423,7 +416,7 @@ namespace Snake
             Console.Write("Game paused");
             Console.SetCursorPosition(Console.WindowWidth / 2 - 12, Console.WindowHeight - 2);
             Console.ForegroundColor = pauseTextColor;
-            PrintHighlight("Press ", "[Enter]", "to continue", pauseHighlightColor);
+            Utils.PrintHighlight("Press ", "[Enter]", "to continue", pauseHighlightColor);
 
             do
             {
@@ -443,21 +436,19 @@ namespace Snake
 
         public static void PrintError(string message)
         {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine(message);
-            Console.ForegroundColor = DefaultForegroundColor;
-            Thread.Sleep(2500);
+            PrintError(message, ConsoleColor.Yellow, 2500);
         }
-
-        public static void PrintHighlight(string begin, string highlight, string end, ConsoleColor highlightColor)
+        public static void PrintError(string message, ConsoleColor color)
+        {
+            PrintError(message, color, 2500);
+        }
+        public static void PrintError(string message, ConsoleColor color, int timeout)
         {
             ConsoleColor prevColor = Console.ForegroundColor;
-
-            Console.Write(begin);
-            Console.ForegroundColor = highlightColor;
-            Console.Write(highlight);
+            Console.ForegroundColor = color;
+            Console.WriteLine(message);
             Console.ForegroundColor = prevColor;
-            Console.Write(end);
+            Thread.Sleep(timeout);
         }
     }
 }

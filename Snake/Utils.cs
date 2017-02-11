@@ -1,9 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Snake
 {
@@ -17,6 +13,25 @@ namespace Snake
                 return true;
             }
             return false;
+        }
+
+        public static void PrintHighlight(string begin, string highlight, string end, ConsoleColor highlightColor)
+        {
+            ConsoleColor prevColor = Console.ForegroundColor;
+
+            Console.Write(begin);
+            Console.ForegroundColor = highlightColor;
+            Console.Write(highlight);
+            Console.ForegroundColor = prevColor;
+            Console.Write(end);
+        }
+        public static void PrintHighlight(string begin, string highlight, ConsoleColor highlightColor)
+        {
+            PrintHighlight(begin, highlight, "", highlightColor);
+        }
+        public static void PrintHighlight(string highlight, ConsoleColor highlightColor)
+        {
+            PrintHighlight("", highlight, "", highlightColor);
         }
 
         public static string Read(int maxLength = 20)
