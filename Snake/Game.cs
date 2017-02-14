@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using System.Collections.Generic;
 
 namespace Snake
 {
@@ -28,6 +29,7 @@ namespace Snake
         public static ConsoleColor DefaultBackgroundColor { get; private set; }
         public static ConsoleColor ReadColor { get; private set; }
         private static readonly Random randy = new Random();
+        private static List<ConsoleKeyInfo> keyBuffer = new List<ConsoleKeyInfo>();
         private static ConsoleColor frameForegroundColor;
         private static ConsoleColor frameBackgroundColor;
         private static ConsoleColor player1Color;
@@ -78,12 +80,31 @@ namespace Snake
 
             PrintStar();
 
-            while(true)
+            new Thread(() =>
+            {
+               while(true)
+                {
+                    if (Console.KeyAvailable)
+                    {
+                        ConsoleKeyInfo key = Console.ReadKey(true);
+                        if (keyBuffer.Count > 0)
+                        {
+                            if (keyBuffer[keyBuffer.Count - 1] != key)
+                                keyBuffer.Add(key);
+                        }
+                        else
+                            keyBuffer.Add(key);
+                    }
+                    Thread.Sleep(1);
+                }
+            }).Start();
+
+            while (true)
             {
                 time = Environment.TickCount;
-                if (Console.KeyAvailable)
+                if (keyBuffer.Count>0)
                 {
-                    switch (Console.ReadKey(true).Key)
+                    switch (keyBuffer[0].Key)
                     {
                         case ConsoleKey.W: if (p1.Snake.Dir != Direction.Down) p1.Snake.Dir = Direction.Up; break;
                         case ConsoleKey.A: if (p1.Snake.Dir != Direction.Right) p1.Snake.Dir = Direction.Left; break;
@@ -96,6 +117,8 @@ namespace Snake
                         case ConsoleKey.Escape: Pause(); break;
                         case ConsoleKey.P: Pause(); break;
                     }
+
+                    keyBuffer.RemoveAt(0);
                     starCoords.X = randy.Next(1, WindowWidth - 1);
                 }
                 starCoords.Y = randy.Next(1, WindowHeight - 4);

@@ -78,12 +78,6 @@ namespace Snake
                 }
             }
             
-            /*for (int i = lenght - 1; i >= 0; i--) //c[3]=c[2] c[2]=c[1] c[1]=c[0] 
-            {
-                coordinates[0][i + 1] = coordinates[0][i];
-                coordinates[1][i + 1] = coordinates[1][i];
-            }*/
-
             int leftAdder = 0;
             int topAdder = 0;
 
