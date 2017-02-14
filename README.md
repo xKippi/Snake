@@ -5,6 +5,7 @@ If you have any complaints or suggestions please also report them to the issues 
 Have fun and feel free to recode, redistribute, ... it :)  
   
   
+  
 **CONTROLS:**  
 Player 1: WASD to move  
 Player 2: Arrow Keys to move  
