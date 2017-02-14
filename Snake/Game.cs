@@ -9,7 +9,7 @@ namespace Snake
 {
     public enum WindowSize { Small=40, Normal=46, Big=52}
     public enum Direction { Right, Left, Up, Down };
-    //public enum Object { Wall, Snake1, Snake2, SnakeHead, Star };
+    public enum CollisionObject { Nothing, Snake1, Snake2, Wall, SnakeHead, Star, Corpse };
 
     class Game
     {
@@ -18,10 +18,12 @@ namespace Snake
         public static int StartLength { get; private set; }
         public static int WindowHeight { get; private set; }
         public static int WindowWidth { get; private set; }
+        public static int PlayerCount { get; private set; }
         public static char BodyChar { get; private set; }
         public static char HeadChar { get; private set; }
         public static bool AskForName { get; private set; }
-        public static bool DeleteCorps { get; private set; }
+        public static bool DeleteCorpse { get; private set; }
+        public static bool EatingCorpseGivesPoints { get; private set; }
         public static ConsoleColor DefaultForegroundColor { get; private set; }
         public static ConsoleColor DefaultBackgroundColor { get; private set; }
         public static ConsoleColor ReadColor { get; private set; }
@@ -35,18 +37,18 @@ namespace Snake
         private static ConsoleColor pauseHighlightColor;
         private static ConsoleColor pauseTextColor;
         private static WindowSize windowSize;
+        private static Point starCoords;
         private static int time;
         private static int tickSpeed = 80;
-        private static int[][] starCoordinates;
         private static string currentPath;
         private static string configPath;
         private static char frameChar;
         private static char starChar;
 
-        public static int[][] StarCoordinates
+        private static Coordinates<CollisionObject> coords;
+        public static Coordinates<CollisionObject> Coordinates
         {
-            get { return starCoordinates; }
-            set { starCoordinates = value; }
+            get { return coords; }
         }
 
         static void Main(string[] args)
@@ -54,28 +56,27 @@ namespace Snake
             if (Initialize() != 0)
                 return;
 
-            Console.Clear();
+            coords = new Coordinates<CollisionObject>(WindowWidth, WindowHeight - 3);
+            starCoords = new Point(randy.Next(1, WindowWidth - 1), randy.Next(1, WindowHeight - 4));
 
-            starCoordinates[0][0] = randy.Next(1, WindowWidth - 1);
+            Console.Clear();
 
             Player p1 = new Player("Player 1", 1, player1Color);    
             Player p2 = new Player("Player 2", 2, player2Color);
 
             Console.Clear();
 
-            StarCoordinates[1][0] = randy.Next(1, WindowHeight - 4);
-
             DrawFrame();
-            p1.ScoreLeft = 0;
-            p1.ScoreTop = p2.ScoreTop = WindowHeight - 3;
-            p2.ScoreLeft = WindowWidth - MaxNameLength - 1;
+            p1.ScoreCoords = new Point(0, WindowHeight - 3);
+            p2.ScoreCoords = new Point(WindowWidth - MaxNameLength - 1, WindowHeight - 3);
+
             p1.PrintScore();
             p2.PrintScore();
 
             p1.Snake = new Snake(WindowWidth / 4, (WindowHeight - 8) / 2, p1);
             p2.Snake = new Snake(WindowWidth / 2 + WindowWidth / 4, (WindowHeight - 8) / 2, p2);
 
-            PrintStar(p1.Snake, p2.Snake);
+            PrintStar();
 
             while(true)
             {
@@ -95,55 +96,31 @@ namespace Snake
                         case ConsoleKey.Escape: Pause(); break;
                         case ConsoleKey.P: Pause(); break;
                     }
-                    starCoordinates[0][0] = randy.Next(1, WindowWidth - 1);
+                    starCoords.X = randy.Next(1, WindowWidth - 1);
                 }
-                starCoordinates[1][0] = randy.Next(1, WindowHeight - 4);
-                
-                if (p1.Snake.IsDead)
+                starCoords.Y = randy.Next(1, WindowHeight - 4);
+
+                if (p1.Snake.CanRespawn)
                 {
-                    if (!p1.Snake.StartedRespawnThread)
-                    {
-                        new Thread(() =>
-                        {
-                            Thread.Sleep(2500);
-                            p1.Snake.CanRespawn = true;
-                        }).Start();
-                        p1.Snake.StartedRespawnThread = true;
-                    }
-                    if (p1.Snake.CanRespawn)
-                        p1.Snake = new Snake(WindowWidth / 4, (WindowHeight - 8) / 2, p1);
+                    p1.Snake = new Snake(WindowWidth / 4, (WindowHeight - 8) / 2, p1);
                 }
-                else
+                else if(!p1.Snake.IsDead)
                 {
-                    p1.Snake.RefreshCoordiantes();
                     Snake.HandleCollision(p1.Snake, p2.Snake);
                     if (!p1.Snake.IsDead)
                     {
                         p1.Snake.Move();
-                        Snake.Moved = true;
                     }
                 }
-                
-                if (p2.Snake.IsDead)
+
+                if (p2.Snake.CanRespawn)
                 {
-                    if (!p2.Snake.StartedRespawnThread)
-                    {
-                        new Thread(() =>
-                        {
-                            Thread.Sleep(2500);
-                            p2.Snake.CanRespawn = true;
-                        }).Start();
-                        p2.Snake.StartedRespawnThread = true;
-                    }
-                    if (p2.Snake.CanRespawn)
-                        p2.Snake = new Snake(WindowWidth / 2 + WindowWidth / 4, (WindowHeight - 8) / 2, p2);
+                    p2.Snake = new Snake(WindowWidth / 2 + WindowWidth / 4, (WindowHeight - 8) / 2, p2);
                 }
-                else
+                else if(!p2.Snake.IsDead)
                 {
-                    p2.Snake.RefreshCoordiantes();
                     Snake.HandleCollision(p2.Snake, p1.Snake);
-                    Snake.Moved = false;
-                    if(!p2.Snake.IsDead)
+                    if (!p2.Snake.IsDead)
                         p2.Snake.Move();
                 }
 
@@ -183,15 +160,11 @@ namespace Snake
 
         private static void SetVariables()
         {
-            StarCoordinates = new int[][]
-            {
-                new int[2],
-                new int[2]
-            };
             currentPath = Application.StartupPath;
             configPath = currentPath + "\\snake.conf";
             AskForName = false;
-            DeleteCorps = true;
+            DeleteCorpse = true;
+            EatingCorpseGivesPoints = false;
             frameChar = '\u2592';
             starChar = '*';
             HeadChar = 'O';
@@ -211,6 +184,7 @@ namespace Snake
             MaxNameLength = 20;
             MaxScore = 9999;
             StartLength = 4;
+            PlayerCount = 2;
         }
 
         private static void AppendConfig()
@@ -218,7 +192,7 @@ namespace Snake
             string[] config = new string[0];
             if (!Utils.TryReadLines(configPath, ref config))
             {   
-                config = new string[] { "#Here you can change some settings from the Program.\n","player1Color=" + player1Color, "player2Color=" + player2Color, "frameForegroundcolor=" + frameForegroundColor, "frameBackgroundcolor=" + frameBackgroundColor, "defaultForegroundcolor=" + DefaultForegroundColor, "defaultBackgroundcolor=" + DefaultBackgroundColor, "starColor=" + starColor, "readColor=" + ReadColor, "pauseColor="+pauseColor, "pauseTextColor="+pauseTextColor, "pauseHighlightColor="+pauseHighlightColor, "frameChar=" + frameChar, "starChar="+starChar,"bodyChar="+BodyChar,"headChar="+HeadChar,"askForName=" + AskForName, "deleteCorps=" + DeleteCorps, "preferredWindowSize=" +  windowSize, "maxNameLength="+MaxNameLength,"maxScore="+MaxScore,"startLength="+StartLength,"tickSpeed="+tickSpeed};
+                config = new string[] { "#Here you can change some settings from the Program.\n","player1Color=" + player1Color, "player2Color=" + player2Color, "frameForegroundcolor=" + frameForegroundColor, "frameBackgroundcolor=" + frameBackgroundColor, "defaultForegroundcolor=" + DefaultForegroundColor, "defaultBackgroundcolor=" + DefaultBackgroundColor, "starColor=" + starColor, "readColor=" + ReadColor, "pauseColor="+pauseColor, "pauseTextColor="+pauseTextColor, "pauseHighlightColor="+pauseHighlightColor, "frameChar=" + frameChar, "starChar="+starChar,"bodyChar="+BodyChar,"headChar="+HeadChar,"askForName=" + AskForName, "\n#WARNING: CANNIBALISM", "deleteCorpse=" + DeleteCorpse, "eatingCorpseGivesPoints="+EatingCorpseGivesPoints,"#WARNING END\n", "preferredWindowSize=" +  windowSize, "maxNameLength="+MaxNameLength,"maxScore="+MaxScore,"startLength="+StartLength,"tickSpeed="+tickSpeed};
                 foreach (string item in config)
                 {
                     File.AppendAllText(configPath, item + Environment.NewLine);
@@ -259,7 +233,8 @@ namespace Snake
                         case "bodychar":                BodyChar = confValue[0];break;
                         case "headchar":                HeadChar = confValue[0];break;
                         case "askforname":              AskForName = bool.Parse(confValue); break;
-                        case "deletecorps":             DeleteCorps = bool.Parse(confValue); break;
+                        case "deletecorpse":            DeleteCorpse = bool.Parse(confValue); break;
+                        case "eatingcorpsegivespoints": EatingCorpseGivesPoints = bool.Parse(confValue); break;
                         case "preferredwindowsize":     windowSize = (WindowSize)Enum.Parse(typeof(WindowSize), confValue); break;
                         case "maxnamelength":           MaxNameLength = int.Parse(confValue);  break;
                         case "maxscore":                MaxScore = int.Parse(confValue); if (MaxScore < 10) { MaxScore = 9999; throw new ArgumentOutOfRangeException(); } break;
@@ -314,6 +289,11 @@ namespace Snake
                 StartLength = 4;
             }
 
+            if(DeleteCorpse&&EatingCorpseGivesPoints)
+            {
+                PrintError("eatingCorpseGivesPoints can't be true if deleteCorpse is true... Using default values!");
+                EatingCorpseGivesPoints = false;
+            }
         }
 
         private static int SetWindowSize()
@@ -358,52 +338,35 @@ namespace Snake
             for (int i = 1; i <= WindowHeight - 3; i++)
             {
                 Console.SetCursorPosition(0, i - 1);
+                coords[0, i - 1] = CollisionObject.Wall;
                 Console.Write(frameChar);
                 Console.SetCursorPosition(WindowWidth - 1, i - 1);
+                coords[WindowWidth - 1, i - 1] = CollisionObject.Wall;
                 Console.Write(frameChar);
             }
             for (int i = 1; i <= WindowWidth - 1; i++)
             {
                 Console.SetCursorPosition(i - 1, 0);
+                coords[i - 1, 0] = CollisionObject.Wall;
                 Console.Write(frameChar);
                 Console.SetCursorPosition(i - 1, WindowHeight - 4);
+                coords[i - 1, WindowHeight - 4] = CollisionObject.Wall;
                 Console.Write(frameChar);
             }
             Console.ForegroundColor = DefaultForegroundColor;
             Console.BackgroundColor = DefaultBackgroundColor;
         }
 
-        public static void PrintStar(Snake snake1, Snake snake2)
+        public static void PrintStar()
         {
-            starCoordinates[0][1] = starCoordinates[0][0]; 
-            starCoordinates[1][1] = starCoordinates[1][0];
-            bool samePosition;
-            do
+            while (coords[starCoords.X, starCoords.Y] != CollisionObject.Nothing)
             {
-                samePosition = false;
-                for (int i = snake1.Lenght; i >= 0; i--)
-                {
-                    if (snake1.Coordinates[0][i] == starCoordinates[0][1] && snake1.Coordinates[1][i] == starCoordinates[1][1])
-                    {
-                        starCoordinates[0][1] = randy.Next(1, WindowWidth - 1);
-                        starCoordinates[1][1] = randy.Next(1, WindowHeight - 4);
-                        samePosition = true;
-                    }
-                }
-                for (int i = snake2.Lenght; i >= 0; i--)
-                {
-                    if (snake2.Coordinates[0][i] == starCoordinates[0][1] && snake2.Coordinates[1][i] == starCoordinates[1][1])
-                    {
-                        starCoordinates[0][1] = randy.Next(1, WindowWidth - 1);
-                        starCoordinates[1][1] = randy.Next(1, WindowHeight - 4);
-                        samePosition = true;
-                    }
-                }
+                starCoords = new Point(randy.Next(1, WindowWidth - 1), randy.Next(1, WindowHeight - 4));
             }
-            while (samePosition);
             Console.ForegroundColor = starColor;
-            Console.SetCursorPosition(starCoordinates[0][1], starCoordinates[1][1]);
-            Console.WriteLine(starChar);
+            Console.SetCursorPosition(starCoords.X, starCoords.Y);
+            coords[starCoords.X, starCoords.Y] = CollisionObject.Star;
+            Console.Write(starChar);
             Console.ForegroundColor = DefaultForegroundColor;
         }
 
@@ -416,7 +379,7 @@ namespace Snake
             Console.Write("Game paused");
             Console.SetCursorPosition(Console.WindowWidth / 2 - 12, Console.WindowHeight - 2);
             Console.ForegroundColor = pauseTextColor;
-            Utils.PrintHighlight("Press ", "[Enter]", "to continue", pauseHighlightColor);
+            Utils.PrintHighlight("Press ", "[Enter]", " to continue", pauseHighlightColor);
 
             do
             {

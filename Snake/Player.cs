@@ -4,8 +4,8 @@ namespace Snake
 {
     class Player
     {
-        public int ScoreLeft { get; set; }
-        public int ScoreTop { get; set; }
+        public Point ScoreCoords { get; set; }
+        public int PlayerNumber { get; private set; }
         private int score;
         private int highscore;
         private readonly string name;
@@ -41,6 +41,11 @@ namespace Snake
         {
             this.color = color;
 
+            if (playerNumber < 1 || playerNumber > Game.PlayerCount)
+                throw new ArgumentOutOfRangeException("playerNumber");
+
+            PlayerNumber = playerNumber;
+
             if (Game.AskForName)
             {
                 Console.ForegroundColor = color;
@@ -61,17 +66,17 @@ namespace Snake
             if (highscore > Game.MaxScore)
                 return;
             string space = new string(' ', Game.MaxScore.ToString().Length);
-            Console.SetCursorPosition(ScoreLeft, ScoreTop);
+            Console.SetCursorPosition(ScoreCoords.X, ScoreCoords.Y);
             Console.ForegroundColor = color;
             Console.Write(name + ":");
             Console.ForegroundColor = Game.DefaultForegroundColor;
-            Console.SetCursorPosition(ScoreLeft+7, ScoreTop + 1);
+            Console.SetCursorPosition(ScoreCoords.X+7, ScoreCoords.Y + 1);
             Console.Write(space);
-            Console.SetCursorPosition(ScoreLeft, ScoreTop + 1);
+            Console.SetCursorPosition(ScoreCoords.X, ScoreCoords.Y + 1);
             Console.Write("Score: {0}", score);
-            Console.SetCursorPosition(ScoreLeft + 11, ScoreTop + 2);
+            Console.SetCursorPosition(ScoreCoords.X + 11, ScoreCoords.Y + 2);
             Console.Write(space);
-            Console.SetCursorPosition(ScoreLeft, ScoreTop + 2);
+            Console.SetCursorPosition(ScoreCoords.X, ScoreCoords.Y + 2);
             Console.Write("Highscore: {0}", highscore);
         }
     }
