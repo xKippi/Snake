@@ -106,7 +106,7 @@ namespace Snake
             if (Game.DeleteCorpse)
                 Delete();
 
-            CollisionObject replaceObject = Game.EatingCorpseGivesPoints ? CollisionObject.Corpse : CollisionObject.Nothing;
+            CollisionObject replaceObject = Game.DeleteCorpse ? CollisionObject.Corpse : CollisionObject.Nothing;
             for (int i = coords.Count - 1; i >= 0; i--)
                 Game.Coordinates[coords[i].X, coords[i].Y] = replaceObject;
 
