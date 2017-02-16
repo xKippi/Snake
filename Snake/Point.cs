@@ -4,28 +4,30 @@
     {
         private int x;
         private int y;
-
+        private bool isFilled;
+        
         public Point(int x, int y)
         {
             this.x = x;
             this.y = y;
+            isFilled = true;
         }
 
         public bool IsEmpty
         {
-            get { return x == 0 && y == 0; }
+            get { return !isFilled; }
         }
 
         public int X
         {
             get { return x; }
-            set { x = value; }
+            set { x = value; isFilled = true; }
         }
 
         public int Y
         {
             get { return y; }
-            set { y = value; }
+            set { y = value; isFilled = true; }
         }
 
         public static bool operator ==(Point left, Point right)
@@ -52,8 +54,9 @@
 
         public void Offset(int dx, int dy)
         {
-            X += dx;
-            Y += dy;
+            x += dx;
+            y += dy;
+            isFilled = true;
         }
 
         public void Offset(Point p)
