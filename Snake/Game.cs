@@ -346,6 +346,9 @@ namespace Snake
                 PrintError("You can't get points for non-existent corpse... Using default values!");
                 PointsPerDeadBodyPart = 0;
             }
+
+            if (!AskForName)
+                MaxNameLength = 20;
         }
 
         private static int SetWindowSize()
