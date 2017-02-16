@@ -5,22 +5,27 @@ namespace Snake
     class Player
     {
         public Point ScoreCoords { get; set; }
-        public int PlayerNumber { get; private set; }
+        public Snake Snake { get; set; }
+        private ConsoleKey[] controlKeys;
+        private readonly ConsoleColor color;
+        private readonly string name;
+        private readonly int playerNumber;
         private int score;
         private int highscore;
-        private readonly string name;
-        private readonly ConsoleColor color;
-        private Snake snake;
 
+        public int PlayerNumber
+        {
+            get { return playerNumber; }
+        }
         public int Score
         {
             get { return score; }
-            set { score = value; }
+            set { if (score <= Game.MaxScore) score = value; }
         }
         public int Highscore
         {
             get { return highscore; }
-            set { highscore = value; }
+            set { if(highscore <= Game.MaxScore) highscore = value; }
         }
         public string Name
         {
@@ -30,10 +35,10 @@ namespace Snake
         {
             get { return color; }
         }
-        public Snake Snake
+        public ConsoleKey[] ControlKeys
         {
-            get { return snake; }
-            set { snake = value; }
+            get { return controlKeys; }
+            set { controlKeys = value; }
         }
 
 
@@ -44,7 +49,7 @@ namespace Snake
             if (playerNumber < 1 || playerNumber > Game.PlayerCount)
                 throw new ArgumentOutOfRangeException("playerNumber");
 
-            PlayerNumber = playerNumber;
+            this.playerNumber = playerNumber;
 
             if (Game.AskForName)
             {
@@ -61,10 +66,6 @@ namespace Snake
 
         public void PrintScore()
         {
-            if (score > highscore)
-                highscore = score;
-            if (highscore > Game.MaxScore)
-                return;
             string space = new string(' ', Game.MaxScore.ToString().Length);
             Console.SetCursorPosition(ScoreCoords.X, ScoreCoords.Y);
             Console.ForegroundColor = color;
@@ -78,6 +79,12 @@ namespace Snake
             Console.Write(space);
             Console.SetCursorPosition(ScoreCoords.X, ScoreCoords.Y + 2);
             Console.Write("Highscore: {0}", highscore);
+        }
+
+        public void PrintScore(int left,int top)
+        {
+            ScoreCoords = new Point(left, top);
+            PrintScore();
         }
     }
 }

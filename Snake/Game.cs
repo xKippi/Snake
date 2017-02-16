@@ -9,7 +9,7 @@ using System.Collections.Generic;
 namespace Snake
 {
     public enum WindowSize { Small=40, Normal=46, Big=52}
-    public enum Direction { Right, Left, Up, Down };
+    public enum Direction { Up, Left, Down, Right };
     public enum CollisionObject { Nothing, Snake1, Snake2, Wall, SnakeHead, Star, Corpse };
 
     class Game
@@ -38,6 +38,8 @@ namespace Snake
         private static ConsoleColor pauseColor;
         private static ConsoleColor pauseHighlightColor;
         private static ConsoleColor pauseTextColor;
+        private static ConsoleKey[] p1ControlKeys;
+        private static ConsoleKey[] p2ControlKeys;
         private static WindowSize windowSize;
         private static Point starCoords;
         private static int time;
@@ -69,11 +71,11 @@ namespace Snake
             Console.Clear();
 
             DrawFrame();
-            p1.ScoreCoords = new Point(0, WindowHeight - 3);
-            p2.ScoreCoords = new Point(WindowWidth - MaxNameLength - 1, WindowHeight - 3);
+            p1.PrintScore(0, WindowHeight - 3);
+            p2.PrintScore(WindowWidth - MaxNameLength - 1, WindowHeight - 3);
 
-            p1.PrintScore();
-            p2.PrintScore();
+            p1.ControlKeys = p1ControlKeys;
+            p2.ControlKeys = p2ControlKeys;
 
             p1.Snake = new Snake(WindowWidth / 4, (WindowHeight - 8) / 2, p1);
             p2.Snake = new Snake(WindowWidth / 2 + WindowWidth / 4, (WindowHeight - 8) / 2, p2);
@@ -106,16 +108,24 @@ namespace Snake
                 {
                     switch (keyBuffer[0].Key)
                     {
-                        case ConsoleKey.W: if (p1.Snake.Dir != Direction.Down) p1.Snake.Dir = Direction.Up; break;
-                        case ConsoleKey.A: if (p1.Snake.Dir != Direction.Right) p1.Snake.Dir = Direction.Left; break;
-                        case ConsoleKey.S: if (p1.Snake.Dir != Direction.Up) p1.Snake.Dir = Direction.Down; break;
-                        case ConsoleKey.D: if (p1.Snake.Dir != Direction.Left) p1.Snake.Dir = Direction.Right; break;
-                        case ConsoleKey.LeftArrow: if (p2.Snake.Dir != Direction.Right) p2.Snake.Dir = Direction.Left; break;
-                        case ConsoleKey.RightArrow: if (p2.Snake.Dir != Direction.Left) p2.Snake.Dir = Direction.Right; break;
-                        case ConsoleKey.UpArrow: if (p2.Snake.Dir != Direction.Down) p2.Snake.Dir = Direction.Up; break;
-                        case ConsoleKey.DownArrow: if (p2.Snake.Dir != Direction.Up) p2.Snake.Dir = Direction.Down; break;
                         case ConsoleKey.Escape: Pause(); break;
                         case ConsoleKey.P: Pause(); break;
+                    }
+                    for(int i=0;i<4;i++)
+                    {
+                        int tim = (i < 2) ? i+2 : i-2;
+                        if (keyBuffer[0].Key == p1.ControlKeys[i])
+                            if (p1.Snake.Dir != (Direction)tim)
+                            {
+                                p1.Snake.Dir = (Direction)i;
+                                break;
+                            }
+                        if (keyBuffer[0].Key == p2.ControlKeys[i])
+                            if (p2.Snake.Dir != (Direction)tim)
+                            {
+                                p2.Snake.Dir = (Direction)i;
+                                break;
+                            }
                     }
 
                     keyBuffer.RemoveAt(0);
@@ -203,6 +213,8 @@ namespace Snake
             pauseColor = ConsoleColor.Red;
             pauseHighlightColor = ConsoleColor.Gray;
             pauseTextColor = ConsoleColor.DarkGray;
+            p1ControlKeys = new ConsoleKey[] { ConsoleKey.W, ConsoleKey.A, ConsoleKey.S, ConsoleKey.D };
+            p2ControlKeys = new ConsoleKey[] { ConsoleKey.UpArrow, ConsoleKey.LeftArrow, ConsoleKey.DownArrow, ConsoleKey.RightArrow };
             windowSize = WindowSize.Normal;
             MaxNameLength = 20;
             MaxScore = 9999;
@@ -214,8 +226,8 @@ namespace Snake
         {
             string[] config = new string[0];
             if (!Utils.TryReadLines(configPath, ref config))
-            {   
-                config = new string[] 
+            {
+                config = new string[]
                 {
                     "#Here you can change some settings from the Program." +Environment.NewLine,
                     "player1Color=" + player1Color,
@@ -239,6 +251,14 @@ namespace Snake
                     "#Because compared to eating a star (1 Point) or killing another player (2 Points)",
                     "#eating a whole dead snake would give too many points",
                     "pointsPerDeadBodyPart=" +PointsPerDeadBodyPart,
+                    "player1UpKey="+p1ControlKeys[0],
+                    "player1LeftKey="+p1ControlKeys[1],
+                    "player1DownKey="+p1ControlKeys[2],
+                    "player1RightKey="+p1ControlKeys[3],
+                    "player2UpKey="+p2ControlKeys[0],
+                    "player2LeftKey="+p2ControlKeys[1],
+                    "player2DownKey="+p2ControlKeys[2],
+                    "player2RightKey="+p2ControlKeys[3],
                     "preferredWindowSize=" +  windowSize,
                     "maxNameLength=" +MaxNameLength,
                     "maxScore=" +MaxScore,
@@ -287,6 +307,14 @@ namespace Snake
                         case "askforname":              AskForName = bool.Parse(confValue); break;
                         case "deletecorpse":            DeleteCorpse = bool.Parse(confValue); break;
                         case "pointsperdeadbodypart":   PointsPerDeadBodyPart = double.Parse(confValue); if (PointsPerDeadBodyPart < 0) { PointsPerDeadBodyPart = 0; throw new ArgumentOutOfRangeException(); } break;
+                        case "player1upkey":            p1ControlKeys[0] = (ConsoleKey)Enum.Parse(typeof(ConsoleKey), confValue); break;
+                        case "player1leftkey":          p1ControlKeys[1] = (ConsoleKey)Enum.Parse(typeof(ConsoleKey), confValue); break;
+                        case "player1downkey":          p1ControlKeys[2] = (ConsoleKey)Enum.Parse(typeof(ConsoleKey), confValue); break;
+                        case "player1rightkey":         p1ControlKeys[3] = (ConsoleKey)Enum.Parse(typeof(ConsoleKey), confValue); break;
+                        case "player2upkey":            p2ControlKeys[0] = (ConsoleKey)Enum.Parse(typeof(ConsoleKey), confValue); break;
+                        case "player2leftkey":          p2ControlKeys[1] = (ConsoleKey)Enum.Parse(typeof(ConsoleKey), confValue); break;
+                        case "player2downkey":          p2ControlKeys[2] = (ConsoleKey)Enum.Parse(typeof(ConsoleKey), confValue); break;
+                        case "player2rightkey":         p2ControlKeys[3] = (ConsoleKey)Enum.Parse(typeof(ConsoleKey), confValue); break;
                         case "preferredwindowsize":     windowSize = (WindowSize)Enum.Parse(typeof(WindowSize), confValue); break;
                         case "maxnamelength":           MaxNameLength = int.Parse(confValue);  break;
                         case "maxscore":                MaxScore = int.Parse(confValue); if (MaxScore < 10) { MaxScore = 9999; throw new ArgumentOutOfRangeException(); } break;

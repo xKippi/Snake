@@ -6,29 +6,16 @@ namespace Snake
 {
     class Snake
     {
-        public bool CanRespawn { get; set; } = false;
+        public Direction Dir { get; set; }
+        public int Lenght { get; private set; }
+        public bool CanRespawn { get; set; }
+        public bool IsDead { get; private set; }
         private static char bodyChar = Game.BodyChar;
         private static char headChar = Game.HeadChar;
         private CollisionObject collisionSnake;
-        private Direction dir;
         private Player player;
-        private int lenght;
-        private double scoreTmp;
-        private bool isDead = false;
         private List<Point> coords;
-        public int Lenght
-        {
-            get { return lenght; }
-        }
-        public bool IsDead
-        {
-            get { return isDead; }
-        }
-        public Direction Dir
-        {
-            get { return dir; }
-            set { dir = value; }
-        }
+        private double scoreTmp;
 
         public Snake(int left, int top, Player player)
         {
@@ -42,16 +29,16 @@ namespace Snake
             player.PrintScore();
 
             Console.ForegroundColor = player.Color;
-            dir = Direction.Up;
+            Dir = Direction.Up;
             collisionSnake = (CollisionObject)player.PlayerNumber;
-            lenght = Game.StartLength;
-            isDead = false;
+            Lenght = Game.StartLength;
+            IsDead = false;
 
             coords.Add(new Point(left,top));
             Game.Coordinates[left, top] = CollisionObject.SnakeHead;
             Console.SetCursorPosition(left, top);
             Console.Write(headChar);
-            for (int i = top + 1; i <= top + lenght; i++)
+            for (int i = top + 1; i <= top + Lenght; i++)
             {
                 coords.Add(new Point(left,i));
                 Game.Coordinates[left, i] = collisionSnake;
@@ -63,7 +50,7 @@ namespace Snake
 
         public void Move()
         {
-            if (coords.Count - 1 >= lenght)
+            if (coords.Count - 1 >= Lenght)
             {
                 int index = coords.Count - 1;
                 if (Game.Coordinates[coords[index].X, coords[index].Y] == CollisionObject.SnakeHead)
@@ -80,7 +67,7 @@ namespace Snake
             int leftAdder = 0;
             int topAdder = 0;
 
-            switch (dir)
+            switch (Dir)
             {
                 case Direction.Right: leftAdder = 1; break;
                 case Direction.Left: leftAdder = -1; ; break;
@@ -115,7 +102,7 @@ namespace Snake
                 CanRespawn = true;
             }).Start();
 
-            isDead = true;
+            IsDead = true;
         }
 
         public void Delete()
@@ -132,7 +119,7 @@ namespace Snake
         {
             int leftAdder = 0;
             int topAdder = 0;
-            switch (snake1.dir)
+            switch (snake1.Dir)
             {
                 case Direction.Right: leftAdder = 1; break;
                 case Direction.Left: leftAdder = -1; break;
@@ -146,7 +133,7 @@ namespace Snake
                 case CollisionObject.SnakeHead: snake1.Kill(); snake2.Kill(); return;
                 case CollisionObject.Star:
                     {
-                        snake1.lenght++;
+                        snake1.Lenght++;
                         snake1.player.Score++;
                         Game.Coordinates[snake1.coords[0].X, snake1.coords[0].Y] = CollisionObject.Nothing;
                         Game.PrintStar();
