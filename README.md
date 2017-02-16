@@ -7,7 +7,7 @@ Have fun and feel free to recode, redistribute, ... it :)
 **CONTROLS:**  
 Player 1: WASD to move  
 Player 2: Arrow Keys to move  
-Note: Player 1 and Player 2 keys can be configured in the config file
+Note: Player 1 and Player 2 keys can be configured in the config file  
 Pause: [ESC] or [P]  
 
 **HELP:**  
