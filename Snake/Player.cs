@@ -66,6 +66,8 @@ namespace Snake
 
         public void PrintScore()
         {
+            if (ScoreCoords.IsEmpty)
+                throw new ArgumentException("Cannot print score with empty score coordinates");
             string space = new string(' ', Game.MaxScore.ToString().Length);
             Console.SetCursorPosition(ScoreCoords.X, ScoreCoords.Y);
             Console.ForegroundColor = color;

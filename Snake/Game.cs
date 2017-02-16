@@ -113,15 +113,15 @@ namespace Snake
                     }
                     for(int i=0;i<4;i++)
                     {
-                        int tim = (i < 2) ? i+2 : i-2;
+                        int oppositeDir = (i < 2) ? i+2 : i-2;
                         if (keyBuffer[0].Key == p1.ControlKeys[i])
-                            if (p1.Snake.Dir != (Direction)tim)
+                            if (p1.Snake.Dir != (Direction)oppositeDir)
                             {
                                 p1.Snake.Dir = (Direction)i;
                                 break;
                             }
                         if (keyBuffer[0].Key == p2.ControlKeys[i])
-                            if (p2.Snake.Dir != (Direction)tim)
+                            if (p2.Snake.Dir != (Direction)oppositeDir)
                             {
                                 p2.Snake.Dir = (Direction)i;
                                 break;
