@@ -14,7 +14,8 @@ namespace Snake
         private CollisionObject collisionSnake;
         private Direction dir;
         private Player player;
-        private int lenght = 0;
+        private int lenght;
+        private double scoreTmp;
         private bool isDead = false;
         private List<Point> coords;
         public int Lenght
@@ -106,7 +107,7 @@ namespace Snake
             if (Game.DeleteCorpse)
                 Delete();
 
-            CollisionObject replaceObject = Game.DeleteCorpse ? CollisionObject.Corpse : CollisionObject.Nothing;
+            CollisionObject replaceObject = Game.DeleteCorpse? CollisionObject.Nothing : CollisionObject.Corpse;
             for (int i = coords.Count - 1; i >= 0; i--)
                 Game.Coordinates[coords[i].X, coords[i].Y] = replaceObject;
 
@@ -154,7 +155,7 @@ namespace Snake
                         snake1.player.PrintScore();
                         return;
                     }
-                case CollisionObject.Corpse: snake1.player.Score++; snake1.player.PrintScore(); return;
+                case CollisionObject.Corpse: snake1.scoreTmp += Game.PointsPerDeadBodyPart; if (snake1.scoreTmp >= 1) { snake1.scoreTmp--; snake1.player.Score++; snake1.player.PrintScore(); } return;
             }
 
             if(Game.Coordinates[snake1.coords[0].X + leftAdder, snake1.coords[0].Y + topAdder] == snake1.collisionSnake)

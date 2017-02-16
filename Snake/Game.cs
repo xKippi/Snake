@@ -215,7 +215,36 @@ namespace Snake
             string[] config = new string[0];
             if (!Utils.TryReadLines(configPath, ref config))
             {   
-                config = new string[] { "#Here you can change some settings from the Program."+Environment.NewLine,"player1Color=" + player1Color, "player2Color=" + player2Color, "frameForegroundcolor=" + frameForegroundColor, "frameBackgroundcolor=" + frameBackgroundColor, "defaultForegroundcolor=" + DefaultForegroundColor, "defaultBackgroundcolor=" + DefaultBackgroundColor, "starColor=" + starColor, "readColor=" + ReadColor, "pauseColor="+pauseColor, "pauseTextColor="+pauseTextColor, "pauseHighlightColor="+pauseHighlightColor, "frameChar=" + frameChar, "starChar="+starChar,"bodyChar="+BodyChar,"headChar="+HeadChar,"askForName=" + AskForName, Environment.NewLine+"#WARNING: CANNIBALISM", "deleteCorpse=" + DeleteCorpse, "pointsPerDeadBodyPart="+PointsPerDeadBodyPart, "preferredWindowSize=" +  windowSize, "maxNameLength="+MaxNameLength,"maxScore="+MaxScore,"startLength="+StartLength,"tickSpeed="+tickSpeed};
+                config = new string[] 
+                {
+                    "#Here you can change some settings from the Program." +Environment.NewLine,
+                    "player1Color=" + player1Color,
+                    "player2Color=" + player2Color,
+                    "frameForegroundcolor=" + frameForegroundColor,
+                    "frameBackgroundcolor=" + frameBackgroundColor,
+                    "defaultForegroundcolor=" + DefaultForegroundColor,
+                    "defaultBackgroundcolor=" + DefaultBackgroundColor,
+                    "starColor=" + starColor,
+                    "readColor=" + ReadColor,
+                    "pauseColor=" +pauseColor,
+                    "pauseTextColor=" +pauseTextColor,
+                    "pauseHighlightColor=" +pauseHighlightColor,
+                    "frameChar=" + frameChar,
+                    "starChar=" +starChar,
+                    "bodyChar=" +BodyChar,
+                    "headChar=" +HeadChar,
+                    "askForName=" + AskForName,
+                    "deleteCorpse=" + DeleteCorpse,
+                    "#It is recommended to set pointsPerDeadBodyPart around 1/[startLength+1] (=1 point per dead snake)",
+                    "#Because compared to eating a star (1 Point) or killing another player (2 Points)",
+                    "#eating a whole dead snake would give too many points",
+                    "pointsPerDeadBodyPart=" +PointsPerDeadBodyPart,
+                    "preferredWindowSize=" +  windowSize,
+                    "maxNameLength=" +MaxNameLength,
+                    "maxScore=" +MaxScore,
+                    "startLength=" +StartLength,
+                    "tickSpeed=" +tickSpeed
+                };
                 foreach (string item in config)
                 {
                     File.AppendAllText(configPath, item + Environment.NewLine);
@@ -257,7 +286,7 @@ namespace Snake
                         case "headchar":                HeadChar = confValue[0];break;
                         case "askforname":              AskForName = bool.Parse(confValue); break;
                         case "deletecorpse":            DeleteCorpse = bool.Parse(confValue); break;
-                        case "pointsperdeadbodypart": PointsPerDeadBodyPart = double.Parse(confValue); if (PointsPerDeadBodyPart < 0) { PointsPerDeadBodyPart = 0; throw new ArgumentOutOfRangeException(); } break;
+                        case "pointsperdeadbodypart":   PointsPerDeadBodyPart = double.Parse(confValue); if (PointsPerDeadBodyPart < 0) { PointsPerDeadBodyPart = 0; throw new ArgumentOutOfRangeException(); } break;
                         case "preferredwindowsize":     windowSize = (WindowSize)Enum.Parse(typeof(WindowSize), confValue); break;
                         case "maxnamelength":           MaxNameLength = int.Parse(confValue);  break;
                         case "maxscore":                MaxScore = int.Parse(confValue); if (MaxScore < 10) { MaxScore = 9999; throw new ArgumentOutOfRangeException(); } break;
