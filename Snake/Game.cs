@@ -47,8 +47,8 @@ namespace Snake
         private static char frameChar;
         private static char starChar;
 
-        private static Coordinates<CollisionObject> coords;
-        public static Coordinates<CollisionObject> Coordinates
+        private static CollisionObject[,] coords;
+        public static CollisionObject[,] Coordinates
         {
             get { return coords; }
         }
@@ -58,7 +58,7 @@ namespace Snake
             if (Initialize() != 0)
                 return;
 
-            coords = new Coordinates<CollisionObject>(WindowWidth, WindowHeight - 3);
+            coords = new CollisionObject[WindowWidth, WindowHeight - 3];
             starCoords = new Point(randy.Next(1, WindowWidth - 1), randy.Next(1, WindowHeight - 4));
 
             Console.Clear();

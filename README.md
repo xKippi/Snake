@@ -1,6 +1,6 @@
 Hey there and have fun with my game.  
 If you find a bug/issue please report it [here](http://github.com/xKippi/Snake/issues/).  
-If you have any complaints or suggestions please also report them to the issues board.  
+If you have any complaints or suggestions please also report them [here](http://github.com/xKippi/Snake/issues/).  
 
 Have fun and feel free to recode, redistribute, ... it :)  
   
