@@ -7,8 +7,8 @@ Have fun and feel free to recode, redistribute, ... it :)
 **CONTROLS:**  
 Player 1: WASD to move  
 Player 2: Arrow Keys to move  
-Note: Player 1 and Player 2 keys can be configured in the config file  
 Pause: [ESC] or [P]  
+Note: Player 1 and Player 2 keys can be configured in the config file  
 
 **HELP:**  
  \- You can ajust almost all settings in the snake.conf file, which is located at the startup path of the program.  
