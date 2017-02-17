@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 
 namespace Snake
 {
@@ -32,6 +33,23 @@ namespace Snake
         public static void PrintHighlight(string highlight, ConsoleColor highlightColor)
         {
             PrintHighlight("", highlight, "", highlightColor);
+        }
+
+        public static void PrintError(string message)
+        {
+            PrintError(message, ConsoleColor.Yellow, 2500);
+        }
+        public static void PrintError(string message, ConsoleColor color)
+        {
+            PrintError(message, color, 2500);
+        }
+        public static void PrintError(string message, ConsoleColor color, int timeout)
+        {
+            ConsoleColor prevColor = Console.ForegroundColor;
+            Console.ForegroundColor = color;
+            Console.WriteLine(message);
+            Console.ForegroundColor = prevColor;
+            Thread.Sleep(timeout);
         }
 
         public static string Read(int maxLength = 20)
