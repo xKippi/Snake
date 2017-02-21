@@ -15,32 +15,50 @@ namespace Snake
     internal class Game
     {
         private static readonly Random randy = new Random();
-        private static List<ConsoleKeyInfo> keyBuffer = new List<ConsoleKeyInfo>();
-        private static ConsoleColor defaultForegroundColor;
-        private static ConsoleColor defaultBackgroundColor;
-        private static ConsoleColor readColor;
-        private static ConsoleColor frameForegroundColor;
-        private static ConsoleColor frameBackgroundColor;
-        private static ConsoleColor pauseColor;
-        private static ConsoleColor pauseHighlightColor;
-        private static ConsoleColor pauseTextColor;
-        private static ConsoleColor[] playerColor;
-        private static ConsoleKey[] p1ControlKeys;
-        private static ConsoleKey[] p2ControlKeys;
+        private static List<ConsoleKeyInfo> keyBuffer =         new List<ConsoleKeyInfo>();
+        private static ConsoleColor defaultForegroundColor =    ConsoleColor.Gray;     //Console.ForegroundColor?
+        private static ConsoleColor defaultBackgroundColor =    ConsoleColor.Black;    //Console.BackgroundColor?
+        private static ConsoleColor readColor =                 ConsoleColor.White;
+        private static ConsoleColor frameForegroundColor =      ConsoleColor.DarkGray;
+        private static ConsoleColor frameBackgroundColor =      ConsoleColor.Black;
+        private static ConsoleColor pauseColor =                ConsoleColor.Red;
+        private static ConsoleColor pauseHighlightColor =       ConsoleColor.Gray;
+        private static ConsoleColor pauseTextColor =            ConsoleColor.DarkGray;
+        private static ConsoleColor[] playerColor =             { ConsoleColor.DarkGreen, ConsoleColor.DarkCyan };
+        private static ConsoleKey[] p1ControlKeys =             { ConsoleKey.W, ConsoleKey.A, ConsoleKey.S, ConsoleKey.D };
+        private static ConsoleKey[] p2ControlKeys =             { ConsoleKey.UpArrow, ConsoleKey.LeftArrow, ConsoleKey.DownArrow, ConsoleKey.RightArrow };
         private static CollisionObject[,] coords;
-        private static WindowSize windowSize;
-        private static int maxNameLength;
-        private static int startLength;
-        private static int tickSpeed = 80;
-        private static bool askForName;
-        private static string currentPath;
-        private static string configPath;
-        private static char frameChar;
+        private static WindowSize windowSize =      WindowSize.Normal;
+        private static int maxNameLength =          20;
+        private static int startLength =            4;
+        private static int tickSpeed =              80;
+        private static bool askForName =            true;
+        private static string currentPath =         Application.StartupPath;
+        private static string configPath =          currentPath + "\\snake.conf";
+        private static char frameChar =             '\u2592';
+
 
         static void Main(string[] args)
         {
-            if (Initialize() != 0)
-                return;
+            Console.OutputEncoding = Encoding.UTF8;
+            Console.CursorVisible = false;
+            Console.Title = "Snake - Multiplayer";
+
+            Console.ForegroundColor = defaultForegroundColor;
+            Console.BackgroundColor = defaultBackgroundColor;
+
+            if (!File.Exists(configPath))
+            {
+                Utils.PrintHighlight("", "Recommended font is Consolas with fontsize 16!", "\nPress any key to continue...", ConsoleColor.Cyan);
+                Console.ReadKey(true);
+            }
+
+            AppendConfig();
+
+            Console.ForegroundColor = defaultForegroundColor;
+            Console.BackgroundColor = defaultBackgroundColor;
+
+            SetWindowSize();
 
             Star.CoordinateSystem = Snake.CoordinateSystem = coords = new CollisionObject[Console.WindowWidth, Console.WindowHeight - 3];
             Star.Coordinates = new Point(randy.Next(1, Console.WindowWidth - 1), randy.Next(1, Console.WindowHeight - 4));
@@ -58,11 +76,11 @@ namespace Snake
                     if (playerNames[i].Length == 0) playerNames[i] = "Player "+(i+1);
                 }
             }
+            
+            Console.Clear();
 
             Player p1 = new Player(playerNames[0], 1, playerColor[0], p1ControlKeys);
             Player p2 = new Player(playerNames[1], 2, playerColor[1], p2ControlKeys);
-
-            Console.Clear();
 
             //Console.WriteLine("Press any key to start...");
             //Console.ReadKey(true);
@@ -153,56 +171,6 @@ namespace Snake
                     Thread.Sleep(1);
                 }
             }
-        }
-
-
-
-        private static int Initialize()
-        {
-            Console.OutputEncoding = Encoding.UTF8;
-            Console.CursorVisible = false;
-            Console.Title = "Snake - Multiplayer";
-
-            SetVariables();
-
-            Console.ForegroundColor = defaultForegroundColor;
-            Console.BackgroundColor = defaultBackgroundColor;
-
-            if (!File.Exists(configPath))
-            {
-                Utils.PrintHighlight("", "Recommended font is Consolas with fontsize 16!", "\nPress any key to continue...", ConsoleColor.Cyan);
-                Console.ReadKey(true);
-            }
-
-            AppendConfig();
-
-            Console.ForegroundColor = defaultForegroundColor;
-            Console.BackgroundColor = defaultBackgroundColor;
-
-            return SetWindowSize();
-        }
-
-        private static void SetVariables()
-        {
-            currentPath = Application.StartupPath;
-            configPath = currentPath + "\\snake.conf";
-            askForName = true;
-            frameChar = '\u2592';
-            defaultForegroundColor = ConsoleColor.Gray;     //Console.ForegroundColor?
-            defaultBackgroundColor = ConsoleColor.Black;    //Console.BackgroundColor?
-            Star.Color = ConsoleColor.Yellow;
-            readColor = ConsoleColor.White;
-            playerColor = new ConsoleColor[] { ConsoleColor.DarkGreen, ConsoleColor.DarkCyan };
-            frameForegroundColor = ConsoleColor.DarkGray;
-            frameBackgroundColor = ConsoleColor.Black;
-            pauseColor = ConsoleColor.Red;
-            pauseHighlightColor = ConsoleColor.Gray;
-            pauseTextColor = ConsoleColor.DarkGray;
-            p1ControlKeys = new ConsoleKey[] { ConsoleKey.W, ConsoleKey.A, ConsoleKey.S, ConsoleKey.D };
-            p2ControlKeys = new ConsoleKey[] { ConsoleKey.UpArrow, ConsoleKey.LeftArrow, ConsoleKey.DownArrow, ConsoleKey.RightArrow };
-            windowSize = WindowSize.Normal;
-            maxNameLength = 20;
-            startLength = 4;
         }
 
         private static void AppendConfig()
@@ -362,12 +330,9 @@ namespace Snake
                 Utils.PrintError("You can't get points for non-existent corpse... Using default values!");
                 Snake.PointsPerDeadBodyPart = 0;
             }
-
-            if (!askForName)
-                maxNameLength = 20;
         }
 
-        private static int SetWindowSize()
+        private static void SetWindowSize()
         {
             int originalHeight = Console.WindowHeight;
             int originalWidth = Console.WindowWidth;
@@ -384,7 +349,7 @@ namespace Snake
                     Console.BufferWidth = windowWidth;
                     Console.WindowHeight = windowHeight;
                     Console.WindowWidth = windowWidth;
-                    return 0;
+                    return;
                 }
                 catch (Exception)
                 {
@@ -396,7 +361,7 @@ namespace Snake
                 }
             }
             Utils.PrintError("Can't set Console Size for game... Quitting!", ConsoleColor.Red, 3000);
-            return 1;
+            Environment.Exit(0);
         }
 
         private static void DrawFrame()

@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace Snake
 {
-    static class Utils
+    internal static class Utils
     {
         public static bool TryReadLines(string file, ref string[] fileInLines)
         {

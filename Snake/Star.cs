@@ -2,9 +2,10 @@
 
 namespace Snake
 {
-    static class Star
+    public static class Star
     {
         private static bool firstSet = true;
+        private static bool firstSetColor = true;
         private static bool firstSetChar = true;
 
         private static char starChar='*';
@@ -21,11 +22,11 @@ namespace Snake
             set { if (!firstSet) throw new InvalidOperationException("CoordinateSystem can be only set once"); coordSystem = value; firstSet = false; }
         }
 
-        private static ConsoleColor color;
+        private static ConsoleColor color = ConsoleColor.Yellow;
         public static ConsoleColor Color
         {
             get { return color; }
-            set { color = value; }
+            set { if (!firstSetColor) throw new InvalidOperationException("Color can be only set once"); color = value; firstSetColor = false; }
         }
 
         private static Point coords;
