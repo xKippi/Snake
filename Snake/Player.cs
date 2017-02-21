@@ -2,7 +2,7 @@
 
 namespace Snake
 {
-    class Player
+    public class Player
     {
         private static int maxScore = 9999;
 

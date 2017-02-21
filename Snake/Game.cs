@@ -12,18 +12,15 @@ namespace Snake
     public enum Direction { Up, Left, Down, Right };
     public enum CollisionObject { Nothing, Snake1, Snake2, Wall, SnakeHead, Star, Corpse };
 
-    class Game
+    internal class Game
     {
-        public static int MaxNameLength { get; private set; }
-        public static int StartLength { get; private set; }
-        public static ConsoleColor DefaultForegroundColor { get; private set; }
-        public static ConsoleColor DefaultBackgroundColor { get; private set; }
-        public static ConsoleColor ReadColor { get; private set; }
         private static readonly Random randy = new Random();
         private static List<ConsoleKeyInfo> keyBuffer = new List<ConsoleKeyInfo>();
+        private static ConsoleColor defaultForegroundColor;
+        private static ConsoleColor defaultBackgroundColor;
+        private static ConsoleColor readColor;
         private static ConsoleColor frameForegroundColor;
         private static ConsoleColor frameBackgroundColor;
-        private static ConsoleColor starColor;
         private static ConsoleColor pauseColor;
         private static ConsoleColor pauseHighlightColor;
         private static ConsoleColor pauseTextColor;
@@ -32,21 +29,21 @@ namespace Snake
         private static ConsoleKey[] p2ControlKeys;
         private static CollisionObject[,] coords;
         private static WindowSize windowSize;
-        private static Point starCoords;
+        private static int maxNameLength;
+        private static int startLength;
         private static int tickSpeed = 80;
         private static bool askForName;
         private static string currentPath;
         private static string configPath;
         private static char frameChar;
-        private static char starChar;
 
         static void Main(string[] args)
         {
             if (Initialize() != 0)
                 return;
 
-            Snake.Coordinates = coords = new CollisionObject[Console.WindowWidth, Console.WindowHeight - 3];
-            starCoords = new Point(randy.Next(1, Console.WindowWidth - 1), randy.Next(1, Console.WindowHeight - 4));
+            Star.CoordinateSystem = Snake.CoordinateSystem = coords = new CollisionObject[Console.WindowWidth, Console.WindowHeight - 3];
+            Star.Coordinates = new Point(randy.Next(1, Console.WindowWidth - 1), randy.Next(1, Console.WindowHeight - 4));
 
             Console.Clear();
 
@@ -56,7 +53,7 @@ namespace Snake
                 for (int i = 0; i < playerNames.Length; i++)
                 {
                     Utils.PrintHighlight("", "Player "+(i+1), " Name: ", playerColor[i]);
-                    playerNames[i] = Utils.Read(MaxNameLength);
+                    playerNames[i] = Utils.Read(maxNameLength,readColor);
                     Console.WriteLine();
                     if (playerNames[i].Length == 0) playerNames[i] = "Player "+(i+1);
                 }
@@ -72,12 +69,12 @@ namespace Snake
 
             DrawFrame();
             p1.PrintScore(0, Console.WindowHeight - 3);
-            p2.PrintScore(Console.WindowWidth - MaxNameLength - 1, Console.WindowHeight - 3);
+            p2.PrintScore(Console.WindowWidth - maxNameLength - 1, Console.WindowHeight - 3);
 
-            p1.Snake = new Snake(Console.WindowWidth / 4, (Console.WindowHeight - 8) / 2, StartLength, p1);
-            p2.Snake = new Snake(Console.WindowWidth / 2 + Console.WindowWidth / 4, (Console.WindowHeight - 8) / 2, StartLength, p2);
+            p1.Snake = new Snake(Console.WindowWidth / 4, (Console.WindowHeight - 8) / 2, startLength, p1);
+            p2.Snake = new Snake(Console.WindowWidth / 2 + Console.WindowWidth / 4, (Console.WindowHeight - 8) / 2, startLength, p2);
 
-            PrintStar();
+            Star.Print();
 
             new Thread(() =>
             {
@@ -124,13 +121,12 @@ namespace Snake
                     }
 
                     keyBuffer.RemoveAt(0);
-                    starCoords.X = randy.Next(1, Console.WindowWidth - 1);
                 }
-                starCoords.Y = randy.Next(1, Console.WindowHeight - 4);
+                Star.Coordinates = new Point(randy.Next(1, Console.WindowWidth - 1), randy.Next(1, Console.WindowHeight - 4));
 
                 if (p1.Snake.CanRespawn)
                 {
-                    p1.Snake = new Snake(Console.WindowWidth / 4, (Console.WindowHeight - 8) / 2, StartLength, p1);
+                    p1.Snake = new Snake(Console.WindowWidth / 4, (Console.WindowHeight - 8) / 2, startLength, p1);
                 }
                 else if(!p1.Snake.IsDead)
                 {
@@ -143,7 +139,7 @@ namespace Snake
 
                 if (p2.Snake.CanRespawn)
                 {
-                    p2.Snake = new Snake(Console.WindowWidth / 2 + Console.WindowWidth / 4, (Console.WindowHeight - 8) / 2, StartLength, p2);
+                    p2.Snake = new Snake(Console.WindowWidth / 2 + Console.WindowWidth / 4, (Console.WindowHeight - 8) / 2, startLength, p2);
                 }
                 else if(!p2.Snake.IsDead)
                 {
@@ -169,8 +165,8 @@ namespace Snake
 
             SetVariables();
 
-            Console.ForegroundColor = DefaultForegroundColor;
-            Console.BackgroundColor = DefaultBackgroundColor;
+            Console.ForegroundColor = defaultForegroundColor;
+            Console.BackgroundColor = defaultBackgroundColor;
 
             if (!File.Exists(configPath))
             {
@@ -180,8 +176,8 @@ namespace Snake
 
             AppendConfig();
 
-            Console.ForegroundColor = DefaultForegroundColor;
-            Console.BackgroundColor = DefaultBackgroundColor;
+            Console.ForegroundColor = defaultForegroundColor;
+            Console.BackgroundColor = defaultBackgroundColor;
 
             return SetWindowSize();
         }
@@ -190,13 +186,12 @@ namespace Snake
         {
             currentPath = Application.StartupPath;
             configPath = currentPath + "\\snake.conf";
-            askForName = false;
+            askForName = true;
             frameChar = '\u2592';
-            starChar = '*';
-            DefaultForegroundColor = ConsoleColor.Gray;     //Console.ForegroundColor?
-            DefaultBackgroundColor = ConsoleColor.Black;    //Console.BackgroundColor?
-            starColor = ConsoleColor.Yellow;
-            ReadColor = ConsoleColor.White;
+            defaultForegroundColor = ConsoleColor.Gray;     //Console.ForegroundColor?
+            defaultBackgroundColor = ConsoleColor.Black;    //Console.BackgroundColor?
+            Star.Color = ConsoleColor.Yellow;
+            readColor = ConsoleColor.White;
             playerColor = new ConsoleColor[] { ConsoleColor.DarkGreen, ConsoleColor.DarkCyan };
             frameForegroundColor = ConsoleColor.DarkGray;
             frameBackgroundColor = ConsoleColor.Black;
@@ -206,8 +201,8 @@ namespace Snake
             p1ControlKeys = new ConsoleKey[] { ConsoleKey.W, ConsoleKey.A, ConsoleKey.S, ConsoleKey.D };
             p2ControlKeys = new ConsoleKey[] { ConsoleKey.UpArrow, ConsoleKey.LeftArrow, ConsoleKey.DownArrow, ConsoleKey.RightArrow };
             windowSize = WindowSize.Normal;
-            MaxNameLength = 20;
-            StartLength = 4;
+            maxNameLength = 20;
+            startLength = 4;
         }
 
         private static void AppendConfig()
@@ -223,16 +218,16 @@ namespace Snake
                     "player2Color=" + playerColor[1],
                     "frameForegroundcolor=" + frameForegroundColor,
                     "frameBackgroundcolor=" + frameBackgroundColor,
-                    "defaultForegroundcolor=" + DefaultForegroundColor,
-                    "defaultBackgroundcolor=" + DefaultBackgroundColor,
-                    "starColor=" + starColor,
-                    "readColor=" + ReadColor,
+                    "defaultForegroundcolor=" + defaultForegroundColor,
+                    "defaultBackgroundcolor=" + defaultBackgroundColor,
+                    "starColor=" + Star.Color,
+                    "readColor=" + readColor,
                     "pauseColor=" +pauseColor,
                     "pauseTextColor=" +pauseTextColor,
                     "pauseHighlightColor=" +pauseHighlightColor,
                     "",
                     "frameChar=" + frameChar,
-                    "starChar=" +starChar,
+                    "starChar=" +Star.Char,
                     "bodyChar=" +Snake.BodyChar,
                     "headChar=" +Snake.HeadChar,
                     "",
@@ -253,9 +248,9 @@ namespace Snake
                     "",
                     "askForName=" + askForName,
                     "preferredWindowSize=" +  windowSize,
-                    "maxNameLength=" +MaxNameLength,
+                    "maxNameLength=" +maxNameLength,
                     "maxScore=" +Player.MaxScore,
-                    "startLength=" +StartLength,
+                    "startLength=" +startLength,
                     "tickSpeed=" +tickSpeed
                 };
                 foreach (string item in config)
@@ -286,15 +281,15 @@ namespace Snake
                         case "player2color":            playerColor[1] = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), confValue); break;
                         case "frameforegroundcolor":    frameForegroundColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), confValue); break;
                         case "framebackgroundcolor":    frameBackgroundColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), confValue); break;
-                        case "defaultforegroundcolor":  DefaultForegroundColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), confValue); break;
-                        case "defaultbackgroundcolor":  DefaultBackgroundColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), confValue); break;
-                        case "starcolor":               starColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), confValue); break;
-                        case "readcolor":               ReadColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), confValue); break;
+                        case "defaultforegroundcolor":  defaultForegroundColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), confValue); break;
+                        case "defaultbackgroundcolor":  defaultBackgroundColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), confValue); break;
+                        case "starcolor":               Star.Color = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), confValue); break;
+                        case "readcolor":               readColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), confValue); break;
                         case "pausecolor":              pauseColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), confValue); break;
                         case "pausetextcolor":          pauseTextColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), confValue); break;
                         case "pausehighlightcolor":     pauseHighlightColor = (ConsoleColor)Enum.Parse(typeof(ConsoleColor), confValue); break;
                         case "framechar":               frameChar = confValue[0]; break;
-                        case "starchar":                starChar = confValue[0];break;
+                        case "starchar":                Star.Char = confValue[0];break;
                         case "bodychar":                Snake.BodyChar = confValue[0];break;
                         case "headchar":                Snake.HeadChar = confValue[0];break;
                         case "askforname":              askForName = bool.Parse(confValue); break;
@@ -309,9 +304,9 @@ namespace Snake
                         case "player2downkey":          p2ControlKeys[2] = (ConsoleKey)Enum.Parse(typeof(ConsoleKey), confValue); break;
                         case "player2rightkey":         p2ControlKeys[3] = (ConsoleKey)Enum.Parse(typeof(ConsoleKey), confValue); break;
                         case "preferredwindowsize":     windowSize = (WindowSize)Enum.Parse(typeof(WindowSize), confValue); break;
-                        case "maxnamelength":           MaxNameLength = int.Parse(confValue);  break;
+                        case "maxnamelength":           maxNameLength = int.Parse(confValue);  break;
                         case "maxscore":                Player.MaxScore = int.Parse(confValue); break;
-                        case "startlength":             StartLength = int.Parse(confValue); if (StartLength < 0) { StartLength = 4; throw new ArgumentOutOfRangeException(); } break;
+                        case "startlength":             startLength = int.Parse(confValue); if (startLength < 0) { startLength = 4; throw new ArgumentOutOfRangeException(); } break;
                         case "tickspeed":               tickSpeed = int.Parse(confValue); if (tickSpeed < 0) { tickSpeed=80; throw new ArgumentOutOfRangeException(); } break;
                         default:                        throw new InvalidDataException();
                     }
@@ -334,32 +329,32 @@ namespace Snake
                     return;
             }
 
-            if (MaxNameLength > windowDimesions[1] / 4 + 5 || MaxNameLength > windowDimesions[1] / 2 - 15)
+            if (maxNameLength > windowDimesions[1] / 4 + 5 || maxNameLength > windowDimesions[1] / 2 - 15)
             {
                 Utils.PrintError('"' + "maxNameLength" + '"' + " is too big... Using default value!");
-                MaxNameLength = 20;
+                maxNameLength = 20;
             }
-            if (MaxNameLength < 11 + Player.MaxScore.ToString().Length)
+            if (maxNameLength < 11 + Player.MaxScore.ToString().Length)
             {
                 Utils.PrintError('"' + "maxScore" + '"' + " is too small... Using default value!");
-                MaxNameLength = 20;
+                maxNameLength = 20;
             }
 
-            if (Player.MaxScore.ToString().Length > MaxNameLength - 11)
+            if (Player.MaxScore.ToString().Length > maxNameLength - 11)
             {
                 Utils.PrintError('"' + "maxScore" + '"' + " is too big... Using default value!");
                 Player.MaxScore = 9999;
-                if (MaxNameLength < 11 + Player.MaxScore.ToString().Length)
+                if (maxNameLength < 11 + Player.MaxScore.ToString().Length)
                 {
                     Utils.PrintError('"' + "maxNameLenght" + '"' + " is too big(maxNameLenght and maxScore should suit each other)... Using default value!");
-                    MaxNameLength = 20;
+                    maxNameLength = 20;
                 }
             }
 
-            if (StartLength > (windowDimesions[0] - 8) / 2 + 3)
+            if (startLength > (windowDimesions[0] - 8) / 2 + 3)
             {
                 Utils.PrintError('"' + "startLength" + '"' + " is too big... Using default value!");
-                StartLength = 4;
+                startLength = 4;
             }
 
             if (Snake.DeleteCorpse && Snake.PointsPerDeadBodyPart > 0)
@@ -369,7 +364,7 @@ namespace Snake
             }
 
             if (!askForName)
-                MaxNameLength = 20;
+                maxNameLength = 20;
         }
 
         private static int SetWindowSize()
@@ -426,21 +421,8 @@ namespace Snake
                 coords[i - 1, Console.WindowHeight - 4] = CollisionObject.Wall;
                 Console.Write(frameChar);
             }
-            Console.ForegroundColor = DefaultForegroundColor;
-            Console.BackgroundColor = DefaultBackgroundColor;
-        }
-
-        public static void PrintStar()
-        {
-            while (coords[starCoords.X, starCoords.Y] != CollisionObject.Nothing || (starCoords.Y > (Console.WindowHeight - 8) / 2 && starCoords.Y < ((Console.WindowHeight - 8) / 2 + StartLength + 1) && (starCoords.X == Console.WindowWidth / 4 || starCoords.X == Console.WindowWidth / 2 + Console.WindowWidth / 4)))
-            {
-                starCoords = new Point(randy.Next(1, Console.WindowWidth - 1), randy.Next(1, Console.WindowHeight - 4));
-            }
-            Console.ForegroundColor = starColor;
-            Console.SetCursorPosition(starCoords.X, starCoords.Y);
-            coords[starCoords.X, starCoords.Y] = CollisionObject.Star;
-            Console.Write(starChar);
-            Console.ForegroundColor = DefaultForegroundColor;
+            Console.ForegroundColor = defaultForegroundColor;
+            Console.BackgroundColor = defaultBackgroundColor;
         }
 
         public static void Pause()  //have a break, have a KitKat :)

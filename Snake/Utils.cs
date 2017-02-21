@@ -51,11 +51,12 @@ namespace Snake
             Console.ForegroundColor = prevColor;
             Thread.Sleep(timeout);
         }
-
-        public static string Read(int maxLength = 20)
+        
+        public static string Read(int maxLength, ConsoleColor readColor)
         {
             ConsoleKeyInfo key = new ConsoleKeyInfo();
-            Console.ForegroundColor = Game.ReadColor;
+            ConsoleColor colorBefore = Console.ForegroundColor;
+            Console.ForegroundColor = readColor;
             bool cursorWasVisible = Console.CursorVisible;
             Console.CursorVisible = true;
 
@@ -130,8 +131,16 @@ namespace Snake
             
             if (!cursorWasVisible)
                 Console.CursorVisible = false;
-            Console.ForegroundColor = Game.DefaultForegroundColor;
+            Console.ForegroundColor = colorBefore;
             return eingabe;
+        }
+        public static string Read(ConsoleColor color)
+        {
+            return Read(20, color);
+        }
+        public static string Read()
+        {
+            return Read(20,Console.ForegroundColor);
         }
     }
 }

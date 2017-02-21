@@ -4,14 +4,14 @@ using System.Threading;
 
 namespace Snake
 {
-    class Snake
+    public class Snake
     {
         public Direction Dir { get; set; }
         public int Lenght { get; private set; }
         public bool CanRespawn { get; set; }
         public bool IsDead { get; private set; }
-        public static char BodyChar { get; set; } = '\u25E6';
-        public static char HeadChar { get; set; } = 'O';
+        private static char bodyChar = '\u25E6';
+        private static char headChar = 'O';
         public static bool DeleteCorpse { get; set; } = true;
         public static double PointsPerDeadBodyPart { get; set; } = 0;
         private static CollisionObject[,] coordinates;
@@ -20,11 +20,23 @@ namespace Snake
         private List<Point> coords;
         private double scoreTmp;
         private static bool firstSet = true;
+        private static bool firstSetHeadChar=true;
+        private static bool firstSetBodyChar=true;
 
-        public static CollisionObject[,] Coordinates
+        public static CollisionObject[,] CoordinateSystem
         {
             get { return coordinates; }
             set { if (!firstSet) throw new InvalidOperationException("CoordinateSystem can be only set once"); coordinates = value; firstSet = false; }
+        }
+        public static char HeadChar
+        {
+            get { return headChar; }
+            set { if (!firstSetHeadChar) throw new InvalidOperationException("HeadChar can be only set once"); headChar = value; firstSetHeadChar = false; }
+        }
+        public static char BodyChar
+        {
+            get { return bodyChar; }
+            set { if (!firstSetBodyChar) throw new InvalidOperationException("BodyChar can be only set once"); bodyChar = value; firstSetBodyChar = false; }
         }
 
         public Snake(int left, int top, int length, Player player)
@@ -45,13 +57,18 @@ namespace Snake
             Lenght = length;
             IsDead = false;
 
-            coords.Add(new Point(left,top));
+            while (coordinates[left, top] == CollisionObject.Star)
+                Star.Print();
+            coords.Add(new Point(left, top));
             coordinates[left, top] = CollisionObject.SnakeHead;
             Console.SetCursorPosition(left, top);
             Console.Write(HeadChar);
             for (int i = top + 1; i <= top + Lenght; i++)
             {
-                coords.Add(new Point(left,i));
+                while (coordinates[left, i] == CollisionObject.Star)
+                    Star.Print();
+
+                coords.Add(new Point(left, i));
                 coordinates[left, i] = collisionSnake;
                 Console.SetCursorPosition(left, i);
                 Console.Write(BodyChar);
@@ -148,7 +165,7 @@ namespace Snake
                         snake1.Lenght++;
                         snake1.player.Score++;
                         coordinates[snake1.coords[0].X, snake1.coords[0].Y] = CollisionObject.Nothing;
-                        Game.PrintStar();
+                        Star.Print();
                         snake1.player.PrintScore();
                         return;
                     }
