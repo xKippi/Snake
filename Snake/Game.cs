@@ -16,8 +16,8 @@ namespace Snake
     {
         private static readonly Random randy = new Random();
         private static List<ConsoleKeyInfo> keyBuffer =         new List<ConsoleKeyInfo>();
-        private static ConsoleColor defaultForegroundColor =    ConsoleColor.Gray;     //Console.ForegroundColor?
-        private static ConsoleColor defaultBackgroundColor =    ConsoleColor.Black;    //Console.BackgroundColor?
+        private static ConsoleColor defaultForegroundColor =    ConsoleColor.Gray;              //Console.ForegroundColor?
+        private static ConsoleColor defaultBackgroundColor =    ConsoleColor.Black;             //Console.BackgroundColor?
         private static ConsoleColor readColor =                 ConsoleColor.White;
         private static ConsoleColor frameForegroundColor =      ConsoleColor.DarkGray;
         private static ConsoleColor frameBackgroundColor =      ConsoleColor.Black;
@@ -28,14 +28,14 @@ namespace Snake
         private static ConsoleKey[] p1ControlKeys =             { ConsoleKey.W, ConsoleKey.A, ConsoleKey.S, ConsoleKey.D };
         private static ConsoleKey[] p2ControlKeys =             { ConsoleKey.UpArrow, ConsoleKey.LeftArrow, ConsoleKey.DownArrow, ConsoleKey.RightArrow };
         private static CollisionObject[,] coords;
-        private static WindowSize windowSize =      WindowSize.Normal;
-        private static int maxNameLength =          20;
-        private static int startLength =            4;
-        private static int tickSpeed =              80;
-        private static bool askForName =            true;
-        private static string currentPath =         Application.StartupPath;
-        private static string configPath =          currentPath + "\\snake.conf";
-        private static char frameChar =             '\u2592';
+        private static WindowSize windowSize =                  WindowSize.Normal;
+        private static int maxNameLength =                      20;
+        private static int startLength =                        4;
+        private static int tickSpeed =                          80;
+        private static bool askForName =                        true;
+        private static string currentPath =                     Application.StartupPath;
+        private static string configPath =                      currentPath + "\\snake.conf";
+        private static char frameChar =                         '\u2592';
 
 
         static void Main(string[] args)
@@ -123,19 +123,15 @@ namespace Snake
                         Pause();
                         time = Environment.TickCount;
                     }
-                    for(int i=0;i<4;i++)
+                    for (int i = 0; i < 4; i++)
                     {
-                        int oppositeDir = (i < 2) ? i+2 : i-2;
+                        int oppositeDir = (i < 2) ? i + 2 : i - 2;
                         if (keyBuffer[0].Key == p1.ControlKeys[i])
                             if (p1.Snake.Dir != (Direction)oppositeDir)
-                            {
                                 p1.Snake.Dir = (Direction)i;
-                            }
                         if (keyBuffer[0].Key == p2.ControlKeys[i])
                             if (p2.Snake.Dir != (Direction)oppositeDir)
-                            {
                                 p2.Snake.Dir = (Direction)i;
-                            }
                     }
 
                     keyBuffer.RemoveAt(0);
