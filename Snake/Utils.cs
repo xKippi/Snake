@@ -8,11 +8,16 @@ namespace Snake
     {
         public static bool TryReadLines(string file, ref string[] fileInLines)
         {
-            if (File.Exists(file))
+            try
             {
-                fileInLines = File.ReadAllLines(file);
-                return true;
+                if (File.Exists(file))
+                {
+                    fileInLines = File.ReadAllLines(file);
+                    return true;
+
+                }
             }
+            catch { }
             return false;
         }
 
@@ -51,7 +56,7 @@ namespace Snake
             Console.ForegroundColor = prevColor;
             Thread.Sleep(timeout);
         }
-        
+
         public static string Read(int maxLength, ConsoleColor readColor)
         {
             ConsoleKeyInfo key = new ConsoleKeyInfo();
@@ -70,8 +75,9 @@ namespace Snake
                 {
                     if (!(key.Key != ConsoleKey.Spacebar && key.KeyChar == '\0'))
                     {
-                        temp[0] += key.KeyChar;     
+                        temp[0] += key.KeyChar;
                         eingabe = temp[0] + temp[1];
+                        Console.CursorVisible = false;
                         Console.Write(key.KeyChar + temp[1]);
                         try
                         {
@@ -81,6 +87,7 @@ namespace Snake
                             }
                         }
                         catch (NullReferenceException) { }
+                        Console.CursorVisible = true;
                     }
                 }
                 else if (key.Key == ConsoleKey.Backspace && temp[0].Length > 0)
@@ -128,7 +135,7 @@ namespace Snake
             }
             while (key.Key != ConsoleKey.Enter);
             Console.Write(temp[1]);
-            
+
             if (!cursorWasVisible)
                 Console.CursorVisible = false;
             Console.ForegroundColor = colorBefore;
@@ -138,9 +145,13 @@ namespace Snake
         {
             return Read(20, color);
         }
+        public static string Read(int maxLenght)
+        {
+            return Read(maxLenght, Console.ForegroundColor);
+        }
         public static string Read()
         {
-            return Read(20,Console.ForegroundColor);
+            return Read(20, Console.ForegroundColor);
         }
     }
 }

@@ -18,7 +18,7 @@ namespace Snake
         public static int MaxScore
         {
             get { return maxScore; }
-            set { if (value < 10) throw new ArgumentException(); maxScore = value; }
+            set { maxScore = value; }
         }
         public int PlayerNumber
         {
@@ -27,12 +27,11 @@ namespace Snake
         public int Score
         {
             get { return score; }
-            set { if (score <= maxScore) score = value; }
+            set { if (value <= maxScore) score = value; if (highscore < score) highscore = score; }
         }
         public int Highscore
         {
             get { return highscore; }
-            set { if(highscore <= maxScore) highscore = value; }
         }
         public string Name
         {
@@ -60,8 +59,6 @@ namespace Snake
         {
             if (ScoreCoords.IsEmpty)
                 throw new ArgumentException("Cannot print score at empty score coordinates");
-            if (score > highscore)
-                highscore = score;
             ConsoleColor colorBefore = Console.ForegroundColor;
             string space = new string(' ', maxScore.ToString().Length);
             Console.SetCursorPosition(ScoreCoords.X, ScoreCoords.Y);
